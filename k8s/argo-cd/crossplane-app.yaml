@@ -1,0 +1,25 @@
+# Argo CD Application manifest for Crossplane
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: crossplane
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://charts.crossplane.io/stable
+    chart: crossplane
+    targetRevision: "1.19.0"
+    helm:
+      values: |
+        # Optioneel: extra Helm-values
+        extraEnv:
+          - name: CROSSPLANE_NAMESPACE
+            value: crossplane-system
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: crossplane-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
