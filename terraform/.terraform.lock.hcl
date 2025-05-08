@@ -1,6 +1,20 @@
 # This file is maintained automatically by "terraform init".
 # Manual edits may be lost in future updates.
 
+provider "registry.terraform.io/argoproj-labs/argocd" {
+  version     = "1.2.2"
+  constraints = "~> 1.0"
+  hashes = [
+    "h1:bNeBAOQGiOPj3sfhi3iybFI/vQFLHi+CKU5tGTQxHN4=",
+    "zh:3b180f290481872f641a4d41078fd0e50833004c4092a9c7ad9a854949482cfb",
+    "zh:79422274d674636392295cd0f70c7ed2c47d620927293bb6e7c040758f48593c",
+    "zh:a6f0e6a5568893d9d1f2aed6bc31dc83ddb6a9a625ad74e52c276a91a7d38e87",
+    "zh:d2b070719ecf80986bfab2c011d786c66652133c1e46e193cf0465c1b7538882",
+    "zh:f4685e7f33acd9fc7e23e3df08e4904da69390a6c49af40cd42662b769c72b74",
+    "zh:f56a970b2ac679d1b7d4ead223c0c01a903fd1cef213c805f9c9d5cdf68ae727",
+  ]
+}
+
 provider "registry.terraform.io/hashicorp/helm" {
   version     = "2.17.0"
   constraints = "~> 2.0"
