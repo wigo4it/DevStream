@@ -10,7 +10,7 @@ spec:
         - name: argo-workflows
           repoURL: https://github.com/wigo4it/DevStream.git
           revision: main
-          path: argo-workflows
+          path: apps/argo-workflows
         - name: hello-world
           repoURL: https://github.com/wigo4it/DevStream.git
           revision: main
