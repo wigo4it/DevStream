@@ -14,7 +14,7 @@ spec:
         - name: hello-world
           repoURL: https://github.com/wigo4it/DevStream.git
           revision: main
-          path: hello-world
+          path: apps/hello-world
 
   template:
     metadata:
