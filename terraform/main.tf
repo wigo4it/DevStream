@@ -16,6 +16,18 @@ provider "helm" {
   }
 }
 
+provider "argocd" {
+  # De NodePort van je Argo CD Server (via k3d + NodePort 30443)
+  server_addr = "localhost:30443"
+
+  # Onveilige TLS oké als je lokaal draait
+  insecure = true
+
+  # Ofwel basic auth:
+  username = "admin"        # bv. "admin"
+  password = "jtNVK8kY4jKB1RtS"    # zet dit als TF‐var of in je environment
+}
+
 # Namespace voor Argo CD
 resource "kubernetes_namespace" "argocd" {
   metadata { name = "argocd" }
@@ -52,4 +64,8 @@ resource "helm_release" "argocd" {
     name  = "server.hostNetwork"
     value = "false"
   }
+}
+
+resource "argocd_repository" "devstream" {
+  repo = "https://github.com/wigo4it/DevStream.git"
 }

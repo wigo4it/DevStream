@@ -41,15 +41,6 @@ delete_and_stop() {
     log "Cluster '$CLUSTER_NAME' bestaat niet."
   fi
 
-  log "Stoppen van Docker-daemon…"
-  if sudo systemctl stop docker 2>/dev/null; then
-    log "Docker-daemon gestopt."
-  elif sudo service docker stop 2>/dev/null; then
-    log "Docker-daemon gestopt via service."
-  else
-    error "Kon Docker-daemon niet stoppen."
-  fi
-
   log "Klaar met verwijderen en stoppen."
   exit 0
 }
@@ -64,23 +55,11 @@ if [[ "${1:-}" == "-"* ]]; then
   done
 fi
 
-### 1. Docker check & start
-log "Controleren of Docker draait…"
-if ! docker info &>/dev/null; then
-  log "Docker draait niet. Proberen te starten…"
-  if ! sudo service docker start 2>/dev/null && ! sudo systemctl start docker 2>/dev/null; then
-    error "Kan Docker niet starten. Start Docker Desktop of installeer Docker."
-  fi
-  sleep 5
-  docker info &>/dev/null || error "Docker start gefaald."
-fi
-log "Docker is actief"
-
-### 2. Eénmalige systeem-update
+### 1. Eénmalige systeem-update
 log "Voer één keer apt-get update uit voor alle installaties"
 sudo apt-get update -y
 
-### 3. Installatie-helpers
+### 2. Installatie-helpers
 install_jq()    { log "jq installeren…"    && sudo apt-get install -y jq; }
 install_terraform(){ log "Terraform installeren…"&& sudo apt-get install -y terraform; }
 install_helm()  { log "Helm installeren…"   && curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash; }
@@ -97,7 +76,7 @@ install_argocd(){
   log "argocd CLI versie ${ver} geïnstalleerd"
 }
 
-### 4. Bepaal nieuwste versies (batch)
+### 3. Bepaal nieuwste versies (batch)
 declare -A latest_versions
 log "Bepaal nieuwste tool-versies (batch)"
 latest_versions[terraform]=$(curl -s https://releases.hashicorp.com/index.json | jq -r '.terraform.versions|keys[]' | grep -Ev 'alpha|beta|rc' | sort -Vr | head -n1)
@@ -107,7 +86,7 @@ latest_versions[k3d]=$(curl -s https://api.github.com/repos/k3d-io/k3d/releases/
 latest_versions[jq]=$(curl -s https://api.github.com/repos/stedolan/jq/releases/latest | jq -r .tag_name | sed 's/^jq-//')
 latest_versions[argocd]=$(curl -s https://api.github.com/repos/argoproj/argo-cd/releases/latest | jq -r .tag_name | sed 's/^v//')
 
-### 5. Versiecheck & optionele update
+### 4. Versiecheck & optionele update
 check_and_maybe_update() {
   local cmd=$1 inst_ver="" latest_ver="${latest_versions[$cmd]}"
 
@@ -149,12 +128,12 @@ check_and_maybe_update() {
   fi
 }
 
-### 6. Check/install CLI’s
+### 5. Check/install CLI’s
 for cmd in jq terraform kubectl helm k3d argocd; do
   check_and_maybe_update "$cmd"
 done
 
-### 7. Maak k3d-cluster (met config in default ~/.kube-config)
+### 6. Maak k3d-cluster (met config in default ~/.kube-config)
 if ! k3d cluster list | grep -q "^${CLUSTER_NAME}\b"; then
   log "Cluster '$CLUSTER_NAME' bestaat nog niet, maak aan…"
   k3d cluster create "$CLUSTER_NAME" \
@@ -167,7 +146,7 @@ else
   log "Cluster '$CLUSTER_NAME' bestaat al"
 fi
 
-### 8. Terraform apply voor ArgoCD & Crossplane
+### 7. Terraform apply voor ArgoCD & Crossplane
 if [ ! -d "$TERRAFORM_DIR" ]; then
   error "Directory '$TERRAFORM_DIR' bestaat niet. Plaats je main.tf daar."
 fi
@@ -178,7 +157,7 @@ terraform init -input=false
 terraform apply -auto-approve
 popd &>/dev/null
 
-### 10. Haal ArgoCD admin wachtwoord op & login
+### 8. Haal ArgoCD admin wachtwoord op & login
 ARGO_PASS=$(kubectl -n argocd get secret argocd-initial-admin-secret \
   -o jsonpath="{.data.password}" | base64 -d)
 echo
@@ -189,7 +168,7 @@ argocd login localhost:30443 \
   --password "$ARGO_PASS" \
   --insecure
 
-### 11. Open Argo CD in Edge
+### 9. Open Argo CD in Edge
 log "Argo CD UI openen in Edge…"
 $EDGE_CMD "http://localhost:30443"
 
